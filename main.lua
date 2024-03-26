@@ -49,3 +49,35 @@ function MyCharacterMod:HandleHolyWaterTrail(player)
 end
 
 MyCharacterMod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, MyCharacterMod.HandleHolyWaterTrail)
+
+--------------------------------------------------------------------------------------------------
+
+local TAINTED_GABRIEL_TYPE = Isaac.GetPlayerTypeByName("Gabriel", true)
+local HOLY_OUTBURST_ID = Isaac.GetItemIdByName("Holy Outburst")
+local game = Game()
+
+---@param player EntityPlayer
+function MyCharacterMod:TaintedGabrielInit(player)
+    if player:GetPlayerType() ~= TAINTED_GABRIEL_TYPE then
+        return
+    end
+
+    player:SetPocketActiveItem(HOLY_OUTBURST_ID, ActiveSlot.SLOT_POCKET, true)
+
+    local pool = game:GetItemPool()
+    pool:RemoveCollectible(HOLY_OUTBURST_ID)
+end
+
+MyCharacterMod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, MyCharacterMod.TaintedGabrielInit)
+
+function MyCharacterMod:HolyOutburstUse(_, _, player)
+    local spawnPos = player.Position
+
+    local creep = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_HOLYWATER, 0, spawnPos, Vector.Zero, player):ToEffect()
+    creep.Scale = 2
+    creep:Update()
+
+    return true
+end
+
+MyCharacterMod:AddCallback(ModCallbacks.MC_USE_ITEM, MyCharacterMod.HolyOutburstUse, HOLY_OUTBURST_ID)
